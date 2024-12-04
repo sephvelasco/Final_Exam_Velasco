@@ -1,0 +1,124 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+  # Message of the Day
+  - name: Message of the Day
+    debug:
+      msg: Ansible Managed by @sephvelasco
+
+  - name: Banner Message of the Day
+    copy:
+      content: "Ansible Managed by @sephvelasco\n"
+      dest: /etc/motd
+
+###################################################################
+
+  # Package Updates
+  - name: Update Packages
+    package:
+      update_cache: yes
+
+###################################################################
+
+  # Enterprise Service (Ubuntu)
+  - name: Add Enterprise Service GPG Key on Ubuntu (Docker)
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Add Enterprise Service to APT Repository on Ubuntu (Docker)
+    apt_repository:
+      repo: "deb https://download.docker.com/linux/ubuntu focal stable"
+      state: present
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Install Enterprise Serivce Prerequisites on Ubuntu (Docker)
+    apt:
+      name:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+        - python3-pip
+        - virtualenv
+        - python3-setuptools
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Install Enterprise Service on Ubuntu (Docker)
+    apt:
+      name: docker-ce
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Start Enterprise Service on Ubuntu (Docker)
+    service:
+      name: docker
+      state: started
+      enabled: yes
+    when: ansible_distribution == "Ubuntu"
+
+###################################################################
+
+  # Monitoring Service (Ubuntu)
+  - name: Install Monitoring Service on Ubuntu (Nagios)
+    apt:
+      name: nagios4
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Start Monitoring Service on Ubuntu (Nagios)
+    service:
+      name: nagios4
+      state: started
+      enabled: yes
+    when: ansible_distribution == "Ubuntu"
+
+###################################################################
+
+  # Enterprise Service (CentOS)
+  - name: Install Enterprise Service Prerequisites on CentOS
+    yum:
+      name:
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+  - name: Add Enterprise Service Repository to YUM on CentOS
+    get_url:
+      url: https://download.docker.com/linux/centos/docker-ce.repo
+      dest: /etc/yum.repos.d/docker-ce.repo
+    when: ansible_distribution == "CentOS"
+
+  - name: Install Enterprise Service on CentOS (Docker)
+    yum:
+      name: docker-ce
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+  - name: Start Enterprise Service on CentOS (Docker)
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+###################################################################
+
+  # Monitoring Service (CentOS)
+  - name: Install Monitoring Service on CentOS (Nagios)
+    yum:
+      name: nagios
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+  - name: Start Monitoring Service on CentOS (Nagios)
+    service:
+      name: nagios
+      state: started
+      enabled: yes
+    when: ansible_distribution == "CentOS"
